@@ -1,0 +1,10 @@
+#ifndef DPS_PROJECT_VEHICLESTATE_H
+#define DPS_PROJECT_VEHICLESTATE_H
+
+
+class VehicleState {
+
+};
+
+
+#endif //DPS_PROJECT_VEHICLESTATE_H

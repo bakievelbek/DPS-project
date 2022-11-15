@@ -1,0 +1,10 @@
+#ifndef DPS_PROJECT_VEHICLECONTROL_H
+#define DPS_PROJECT_VEHICLECONTROL_H
+
+
+class VehicleControl {
+
+};
+
+
+#endif //DPS_PROJECT_VEHICLECONTROL_H
