@@ -7,4 +7,4 @@ include_directories(src)
 
 add_executable(DPS_project
         src/Main.cpp
-        src/Main.h)
+        src/Main.h threads/Threads.cpp)
