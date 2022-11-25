@@ -1,10 +1,7 @@
-#include <iostream>
-//#include <mutex>
-//#include <queue>
-//#include <condition_variable>
-
 #ifndef DPS_PROJECT_THREADSAFEQUEUE_H
 #define DPS_PROJECT_THREADSAFEQUEUE_H
+
+#include <string>
 
 using namespace std;
 

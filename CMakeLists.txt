@@ -7,4 +7,9 @@ include_directories(src)
 
 add_executable(DPS_project
         src/Main.cpp
-        src/Main.h)
+        src/ThreadSafeQueue.cpp
+        src/ThreadSafeQueue.h
+        src/Communication.cpp
+        src/Communication.h
+        src/Sensors.cpp
+        src/Sensors.h)

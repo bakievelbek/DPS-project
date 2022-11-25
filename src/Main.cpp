@@ -1,27 +1,26 @@
-#include <cstdlib>
-#include <vector>
+#include <thread>
+#include <iostream>
 
-#include "Communication.cpp"
-#include "Members.cpp"
-#include "Sensors.cpp"
-#include "VehicleControl.h"
-#include "VehicleState.h"
 #include "ThreadSafeQueue.h"
+#include "Communication.h"
+#include "Sensors.h"
+
 
 using namespace std;
 
 int main() {
-    const string version = "0.1";
+//    const string version = "0.1";
 
     ThreadSafeQueue t;
     Communication communication(t);
+    Sensors sensors(t);
 
-    this_thread::sleep_for(5000ms);
-
-    cout << "done" << endl;
+    while(true) {
+        cout << "received: " + t.front() << endl;
+        t.pop();
+    }
 
 //    Members members;
-//    Sensors sensors;
 //    VehicleControl vehicleControl;
 //    VehicleState vehicleState;
 //

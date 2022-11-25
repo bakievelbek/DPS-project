@@ -2,8 +2,12 @@
 #define DPS_PROJECT_SENSORS_H
 
 
-class Sensors {
+#include "ThreadSafeQueue.h"
 
+class Sensors {
+public:
+    explicit Sensors(ThreadSafeQueue t);
+    static int start(ThreadSafeQueue t);
 };
 
 

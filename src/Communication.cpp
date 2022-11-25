@@ -3,8 +3,6 @@
 
 #include "Communication.h"
 
-using namespace std;
-
 
 Communication::Communication(ThreadSafeQueue t) {
     cout << "Starting Communication" << endl;

@@ -2,8 +2,7 @@
 #define DPS_PROJECT_COMMUNICATION_H
 
 
-#include "ThreadSafeQueue.cpp"
-#include <thread>
+#include "ThreadSafeQueue.h"
 
 class Communication {
 public:
