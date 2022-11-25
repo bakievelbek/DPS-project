@@ -2,8 +2,13 @@
 #define DPS_PROJECT_COMMUNICATION_H
 
 
-class Communication {
+#include "ThreadSafeQueue.cpp"
+#include <thread>
 
+class Communication {
+public:
+    explicit Communication(ThreadSafeQueue t);
+    static int start(ThreadSafeQueue t);
 };
 
 
