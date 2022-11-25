@@ -6,7 +6,7 @@
 
 using namespace std;
 
-mutex this_mutex;
+//mutex this_mutex;
 //condition_variable this_cond_var;
 queue<string> this_queue;
 

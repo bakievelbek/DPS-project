@@ -1,12 +1,12 @@
 #include <cstdlib>
 #include <vector>
 
-#include "Communication.cpp"
-#include "Members.cpp"
-#include "Sensors.cpp"
-#include "VehicleControl.h"
-#include "VehicleState.h"
-#include "ThreadSafeQueue.h"
+#include "Communication.h"
+//#include "Members.cpp"
+//#include "Sensors.cpp"
+//#include "VehicleControl.h"
+//#include "VehicleState.h"
+//#include "ThreadSafeQueue.h"
 
 using namespace std;
 

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <thread>
-
+#include <string>
 #include "Communication.h"
 
 using namespace std;
@@ -15,7 +15,7 @@ Communication::Communication(ThreadSafeQueue t) {
 
 int Communication::start(ThreadSafeQueue t) {
     for (int i = 0; i < 5; i++) {
-        string s = "Communication:" + to_string(i);
+        string s = "Communication:" + std::to_string(i);
         cout << "writing - " << s << endl;
         t.push(s);
         this_thread::sleep_for(500ms);
