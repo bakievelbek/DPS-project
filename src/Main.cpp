@@ -4,6 +4,7 @@
 #include "ThreadSafeQueue.h"
 #include "Communication.h"
 #include "Sensors.h"
+#include "Truck.h"
 
 
 using namespace std;
@@ -15,10 +16,16 @@ int main() {
     Communication communication(t);
     Sensors sensors(t);
 
-    while(true) {
+    while (true) {
         cout << "received: " + t.front() << endl;
         t.pop();
     }
+
+
+//  Uncomment and run to see the resuilt
+//    Truck truck1 = Truck();
+//    truck1.getTrackInfo();
+
 
 //    Members members;
 //    VehicleControl vehicleControl;

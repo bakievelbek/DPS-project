@@ -12,7 +12,9 @@ add_executable(DPS_project
         src/Communication.cpp
         src/Communication.h
         src/Sensors.cpp
-        src/Sensors.h)
+        src/Sensors.h
+        src/Truck.cpp
+        src/Truck.h)
 
 #find cppzmq wrapper, installed by make of cppzmq
 find_package(cppzmq)
