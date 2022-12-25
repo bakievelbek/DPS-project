@@ -8,13 +8,13 @@ include_directories(src)
 add_executable(DPS_project
         src/Main.cpp
         src/ThreadSafeQueue.cpp
-        src/ThreadSafeQueue.h
+        "src/Header Files/ThreadSafeQueue.h"
         src/Communication.cpp
-        src/Communication.h
+        "src/Header Files/Communication.h"
         src/Sensors.cpp
-        src/Sensors.h
+        "src/Header Files/Sensors.h"
         src/Truck.cpp
-        src/Truck.h)
+        "src/Header Files/Truck.h")
 
 #find cppzmq wrapper, installed by make of cppzmq
 find_package(cppzmq)

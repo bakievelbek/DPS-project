@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 
-#include "Sensors.h"
+#include "Header Files/Sensors.h"
 
 
 Sensors::Sensors(ThreadSafeQueue t) {

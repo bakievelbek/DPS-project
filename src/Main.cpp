@@ -1,31 +1,40 @@
 #include <thread>
 #include <iostream>
 
-#include "ThreadSafeQueue.h"
-#include "Communication.h"
-#include "Sensors.h"
-#include "Truck.h"
+#include "Header Files/ThreadSafeQueue.h"
+#include "Header Files/Communication.h"
+#include "Header Files/Sensors.h"
+#include "Truck.cpp"
+#include "Header Files/Truck.h"
 
 
 using namespace std;
 
 int main() {
+
+
 //    const string version = "0.1";
 
-    ThreadSafeQueue t;
-    Communication communication(t);
-    Sensors sensors(t);
+//    ThreadSafeQueue t;
+//    Communication communication(t);
+//    Sensors sensors(t);
+//
+//    while (true) {
+//        cout << "received: " + t.front() << endl;
+//        t.pop();
+//    }
 
-    while (true) {
-        cout << "received: " + t.front() << endl;
-        t.pop();
-    }
 
 
-//  Uncomment and run to see the resuilt
-//    Truck truck1 = Truck();
-//    truck1.getTrackInfo();
+//  Uncomment and run to see the result
+    std::thread t(&Truck::activateSystem, Truck());
+    std::thread t2(&Truck::activateSystem, Truck());
+    t.join();
+//    t2.join();
 
+
+//    Truck truck = Truck();
+//    truck.activateSystem();
 
 //    Members members;
 //    VehicleControl vehicleControl;
