@@ -1,7 +1,39 @@
 #include <iostream>
+#include <unistd.h>
 
 using namespace std;
 
-int main(int argc, char *argv[]) {
-    cout << "Foo!!";
+pair<int, int> move(int x, int y, int dx, int dy) {
+    x += dx;
+    y += dy;
+    return make_pair(x, y);
+}
+
+pair<int, int> changeDirectionAtBoundary(int x, int y, int dx, int dy) {
+    int WIDTH = 100;
+    int HEIGHT = 100;
+    dx = x == 0 || x == WIDTH - 1 ? -dx : dx;
+    dy = y == 0 || y == HEIGHT - 1 ? -dy : dy;
+    return make_pair(dx, dy);
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cout << "Please specify an ID e.g. main foo" << "\n";
+        exit(EXIT_FAILURE);
+    }
+
+    int START_X = 20;
+    int START_Y = 50;
+
+    pair<int, int> position = make_pair(START_X, START_Y);
+    pair<int, int> direction = make_pair(-1, -1);
+
+    while (true) {
+        cout << "x:" << position.first << " y:" << position.second << "\n";
+
+        direction = changeDirectionAtBoundary(position.first, position.second, direction.first, direction.second);
+        position = move(position.first, position.second, direction.first, direction.second);
+        sleep(1);
+    }
 }
