@@ -1,4 +1,5 @@
 #include <iostream>
+#include <omp.h>
 #include <unistd.h>
 
 using namespace std;
@@ -21,6 +22,13 @@ int main(int argc, char* argv[]) {
     if (argc != 2) {
         cout << "Please specify an ID e.g. main [name]" << "\n";
         exit(EXIT_FAILURE);
+    }
+
+    #pragma omp parallel default(none) shared(cout)
+    {
+        int id = omp_get_thread_num();
+        #pragma omp critical
+        cout << "Hello, World! from thread " << id << endl;
     }
 
     int START_X = 20;
