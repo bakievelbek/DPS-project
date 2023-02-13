@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.23)
 project(DPS_project)
 
-set(CMAKE_CXX_STANDARD 14)
+include_directories(src "C:/code/aws-iot-device-sdk-cpp-v2-build/include")
 
-include_directories(src)
+list(APPEND CMAKE_PREFIX_PATH "C:/code/aws-iot-device-sdk-cpp-v2-build")
 
-add_executable(DPS_project
-        src/Main.cpp)
+add_executable(DPS_project src/Main.cpp)
 
-target_link_libraries(DPS_project)
+find_package(aws-crt-cpp)
+
+target_link_libraries(DPS_project AWS::aws-crt-cpp)
