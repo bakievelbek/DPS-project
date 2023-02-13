@@ -3,9 +3,11 @@ project(DPS_project)
 
 include_directories(src "C:/code/aws-iot-device-sdk-cpp-v2-build/include")
 
-list(APPEND CMAKE_PREFIX_PATH "C:/code/aws-iot-device-sdk-cpp-v2-build")
-
 add_executable(DPS_project src/Main.cpp)
+
+target_compile_options(DPS_project PUBLIC -fopenmp)
+
+list(APPEND CMAKE_PREFIX_PATH "C:/code/aws-iot-device-sdk-cpp-v2-build")
 
 find_package(aws-crt-cpp)
 

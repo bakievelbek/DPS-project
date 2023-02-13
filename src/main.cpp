@@ -2,6 +2,13 @@
 #include <omp.h>
 #include <unistd.h>
 
+#include <aws/crt/Api.h>
+#include <aws/crt/StlAllocator.h>
+#include <aws/crt/auth/Credentials.h>
+#include <aws/crt/io/TlsOptions.h>
+
+#include <aws/iot/MqttClient.h>
+
 using namespace std;
 
 pair<int, int> move(int x, int y, int dx, int dy) {
@@ -24,12 +31,17 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    #pragma omp parallel default(none) shared(cout)
-    {
+    #pragma omp parallel for default(none) shared(cout)
+    for (int i = 0; i < 3; i++) {
         int id = omp_get_thread_num();
         #pragma omp critical
-        cout << "Hello, World! from thread " << id << endl;
+        cout << i << " running in thread " << id << endl;
     }
+//    {
+//        int id = omp_get_thread_num();
+//        #pragma omp critical
+//        cout << "Hello, World! from thread " << id << endl;
+//    }
 
     int START_X = 20;
     int START_Y = 50;
