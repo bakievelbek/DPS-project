@@ -27,7 +27,7 @@ pair<int, int> changeDirectionAtBoundary(int x, int y, int dx, int dy) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
-        cout << "Please specify an ID e.g. main [name]" << "\n";
+        cout << "Please specify an ID e.g. main [name]" << endl;
         exit(EXIT_FAILURE);
     }
 

@@ -23,6 +23,7 @@ cmake .. -G Ninja -DBUILD_ONLY=iot -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDA
 cmake -DCMAKE_INSTALL_PREFIX="C:/code/aws-iot-device-sdk-cpp-v2-build" ../aws-iot-device-sdk-cpp-v2
 
 ```
+from aws-iot-device-sdk-cpp-v2-build folder
 cmake -DCMAKE_INSTALL_PREFIX="C:/code/aws-iot-device-sdk-cpp-v2-build" -DCMAKE_BUILD_TYPE="Release" ../aws-iot-device-sdk-cpp-v2
 ```
 
@@ -34,7 +35,8 @@ msbuild ALL_BUILD.vcxproj /p:Configuration=Release
 ninja
 
 ```
-cmake --install . --config Release
+from DPS-project folder
+cmake --install ../aws-iot-device-sdk-cpp-v2-build --config Release
 ```
 
 ## To Compile
