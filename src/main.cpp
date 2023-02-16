@@ -1,4 +1,8 @@
 #include <aws/crt/UUID.h>
+//#include "rapidjson/document.h"
+//#include "rapidjson/writer.h"
+//#include "rapidjson/stringbuffer.h"
+#include "rapidjson/reader.h"
 
 #include <iostream>
 #include <mutex>
@@ -7,6 +11,7 @@
 #include "Communication.h"
 
 using namespace Aws::Crt;
+using namespace rapidjson;
 using namespace std;
 
 int main(int argc, char *argv[]) {
@@ -43,7 +48,34 @@ int main(int argc, char *argv[]) {
     );
 
     while(true) {
+//        Document doc;
+//        doc.Parse(message.c_str());
         cout << "msg: " << threadSafeQueue.front();
         threadSafeQueue.pop();
     }
 }
+
+
+/*  SAMPLE MESSAGE
+{
+    "id": string,
+    "x": double,
+    "y": double,
+    "isBraking": bool,
+    "speed": double,
+    "direction": int,
+    "joined": time_t,
+    "received": time_t,
+}
+
+{
+    "id": "123",
+    "x": 10.5,
+    "y": 20.0,
+    "isBraking": false,
+    "speed": 50.0,
+    "direction": 90,
+    "joined": 1644723600,
+    "received": 1644723650
+}
+ */
