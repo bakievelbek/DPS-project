@@ -18,6 +18,7 @@ public:
         String clientId,
         String topic
     );
+    void publish(const char *message);
 };
 
 

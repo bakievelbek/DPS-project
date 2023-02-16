@@ -5,11 +5,9 @@ project(DPS-project CXX)
 file(GLOB SRC_FILES
     "*.cpp"
     "src/*.cpp"
-    "../../utils/CommandLineUtils.cpp"
-    "../../utils/CommandLineUtils.h"
 )
 
-add_executable(${PROJECT_NAME} ${SRC_FILES} src/aws.cpp src/aws.cpp src/Communication.cpp src/Communication.h)
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 14)

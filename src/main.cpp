@@ -31,9 +31,6 @@ int main(int argc, char *argv[]) {
     String topic = cmdUtils.GetCommandOrDefault("topic", "test/topic");
     String clientId = cmdUtils.GetCommandOrDefault("client_id", String("test-") + Aws::Crt::UUID().ToString());
 
-//    String messagePayload = cmdUtils.GetCommandOrDefault("message", R"({"message": "Hello platoon!"})");
-
-    /* Get a MQTT client connection from the command parser */
     auto connection = cmdUtils.BuildMQTTConnection();
 
     Communication communication(
@@ -44,5 +41,6 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         this_thread::sleep_for(chrono::seconds(1));
+        communication.publish("something");
     }
 }
