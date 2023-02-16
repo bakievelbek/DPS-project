@@ -1,59 +1,48 @@
-#include <iostream>
-#include <omp.h>
-#include <unistd.h>
+#include <aws/crt/UUID.h>
+#include <chrono>
+#include <mutex>
+#include <thread>
 
-#include <aws/crt/Api.h>
-#include <aws/crt/StlAllocator.h>
-#include <aws/crt/auth/Credentials.h>
-#include <aws/crt/io/TlsOptions.h>
+#include "CommandLineUtils.h"
+#include "Communication.h"
 
-#include <aws/iot/MqttClient.h>
-
+using namespace Aws::Crt;
 using namespace std;
 
-pair<int, int> move(int x, int y, int dx, int dy) {
-    x += dx;
-    y += dy;
-    return make_pair(x, y);
-}
+int main(int argc, char *argv[]) {
+    ApiHandle apiHandle;
 
-pair<int, int> changeDirectionAtBoundary(int x, int y, int dx, int dy) {
-    int WIDTH = 100;
-    int HEIGHT = 100;
-    dx = x == 0 || x == WIDTH - 1 ? -dx : dx;
-    dy = y == 0 || y == HEIGHT - 1 ? -dy : dy;
-    return make_pair(dx, dy);
-}
+    /*********************** Parse Arguments ***************************/
+    Utils::CommandLineUtils cmdUtils = Utils::CommandLineUtils();
+    cmdUtils.RegisterProgramName("basic_pub_sub");
+    cmdUtils.AddCommonMQTTCommands();
+    cmdUtils.RegisterCommand("key", "<path>", "Path to your key in PEM format.");
+    cmdUtils.RegisterCommand("cert", "<path>", "Path to your client certificate in PEM format.");
+    cmdUtils.AddCommonProxyCommands();
+    cmdUtils.AddCommonTopicMessageCommands();
+    cmdUtils.RegisterCommand("client_id", "<str>", "Client id to use (optional, default='test-*')");
+    cmdUtils.RegisterCommand("count", "<int>", "The number of messages to send (optional, default='10')");
+    cmdUtils.RegisterCommand("port_override", "<int>", "The port override to use when connecting (optional)");
+    cmdUtils.AddLoggingCommands();
+    const char **const_argv = (const char **)argv;
+    cmdUtils.SendArguments(const_argv, const_argv + argc);
+    cmdUtils.StartLoggingBasedOnCommand(&apiHandle);
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        cout << "Please specify an ID e.g. main [name]" << endl;
-        exit(EXIT_FAILURE);
-    }
+    String topic = cmdUtils.GetCommandOrDefault("topic", "test/topic");
+    String clientId = cmdUtils.GetCommandOrDefault("client_id", String("test-") + Aws::Crt::UUID().ToString());
 
-    #pragma omp parallel for default(none) shared(cout)
-    for (int i = 0; i < 3; i++) {
-        int id = omp_get_thread_num();
-        #pragma omp critical
-        cout << i << " running in thread " << id << endl;
-    }
-//    {
-//        int id = omp_get_thread_num();
-//        #pragma omp critical
-//        cout << "Hello, World! from thread " << id << endl;
-//    }
+//    String messagePayload = cmdUtils.GetCommandOrDefault("message", R"({"message": "Hello platoon!"})");
 
-    int START_X = 20;
-    int START_Y = 50;
+    /* Get a MQTT client connection from the command parser */
+    auto connection = cmdUtils.BuildMQTTConnection();
 
-    pair<int, int> position = make_pair(START_X, START_Y);
-    pair<int, int> direction = make_pair(-1, -1);
+    Communication communication(
+        connection,
+        clientId,
+        topic
+    );
 
     while (true) {
-        cout << "x:" << position.first << " y:" << position.second << "\n";
-
-        direction = changeDirectionAtBoundary(position.first, position.second, direction.first, direction.second);
-        position = move(position.first, position.second, direction.first, direction.second);
-        sleep(1);
+        this_thread::sleep_for(chrono::seconds(1));
     }
 }
