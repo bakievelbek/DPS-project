@@ -6,7 +6,7 @@ std::promise<void> connectionClosedPromise;
 std::shared_ptr<Mqtt::MqttConnection> _connection;
 std::string _topic;
 
-Communication::Communication(std::shared_ptr<Mqtt::MqttConnection> connection, String clientId, String topic) {
+Communication::Communication(ThreadSafeQueue threadSafeQueue, std::shared_ptr<Mqtt::MqttConnection> connection, String clientId, String topic) {
     _connection = connection;
     _topic = (&topic)->c_str();
 
@@ -31,8 +31,11 @@ Communication::Communication(std::shared_ptr<Mqtt::MqttConnection> connection, S
         connectionClosedPromise.set_value();
     };
     auto onMessage = [&](Mqtt::MqttConnection &, const String &topic, const ByteBuf &byteBuf, bool, Mqtt::QOS, bool) {
-        fwrite(byteBuf.buffer, 1, byteBuf.len, stdout);
-        fprintf(stdout, "Received message on topic %s\n", topic.c_str());
+        if (topic.compare(_topic.c_str()) != 0) return;
+
+        // queue message for main
+        String str(reinterpret_cast<const char*>(byteBuf.buffer), byteBuf.len);
+        threadSafeQueue.push(str.c_str());
     };
 
     connection->OnConnectionCompleted = std::move(onConnectionCompleted);

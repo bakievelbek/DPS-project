@@ -2,6 +2,9 @@
 #define DPS_PROJECT_THREADSAFEQUEUE_H
 
 #include <string>
+#include <mutex>
+#include <queue>
+#include <condition_variable>
 
 using namespace std;
 

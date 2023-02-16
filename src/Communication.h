@@ -7,13 +7,17 @@
 #include <aws/crt/io/TlsOptions.h>
 #include <aws/iot/MqttClient.h>
 
+#include "ThreadSafeQueue.h"
+
 #include <thread>
 
 using namespace Aws::Crt;
 
+
 class Communication {
 public:
     explicit Communication(
+        ThreadSafeQueue threadSafeQueue,
         std::shared_ptr<Mqtt::MqttConnection> connection,
         String clientId,
         String topic

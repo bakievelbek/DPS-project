@@ -1,8 +1,4 @@
-#include <mutex>
-#include <queue>
-#include <condition_variable>
-
-#include "Header Files/ThreadSafeQueue.h"
+#include "ThreadSafeQueue.h"
 
 mutex this_mutex;
 condition_variable this_cond_var;

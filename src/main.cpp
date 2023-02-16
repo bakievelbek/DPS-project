@@ -1,7 +1,7 @@
 #include <aws/crt/UUID.h>
-#include <chrono>
+
+#include <iostream>
 #include <mutex>
-#include <thread>
 
 #include "CommandLineUtils.h"
 #include "Communication.h"
@@ -33,14 +33,17 @@ int main(int argc, char *argv[]) {
 
     auto connection = cmdUtils.BuildMQTTConnection();
 
-    Communication communication(
+    ThreadSafeQueue threadSafeQueue;
+
+    Communication(
+        threadSafeQueue,
         connection,
         clientId,
         topic
     );
 
-    while (true) {
-        this_thread::sleep_for(chrono::seconds(1));
-        communication.publish("something");
+    while(true) {
+        cout << "msg: " << threadSafeQueue.front();
+        threadSafeQueue.pop();
     }
 }
