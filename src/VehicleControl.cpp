@@ -10,20 +10,19 @@
  */
 
 double START_X = 200;
-double START_Y = 300;
+double START_Y = 400;
 double SPEED_LIMIT = 30;  // pixels/frame
 double SPEED_X = -SPEED_LIMIT;
 double SPEED_Y = -SPEED_LIMIT;  // -SPEED_LIMIT;
 int BOUNDARY_TL = 50;
 int BOUNDARY_BR = 550;
+int INTERVAL_TIME_MS = 250;  // time before updating in ms
 
 VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSafeQueue) {
     pair<double, double> position = make_pair(START_X, START_Y);
     pair<double, double> direction = make_pair(SPEED_X, SPEED_Y);
 
     while (true) {
-        // std::cout << "x:" << position.first << " y:" << position.second << "\n";
-
         direction = changeDirectionAtBoundary(position, direction);
         position = move(position, direction);
 
@@ -32,11 +31,15 @@ VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSa
             vehicleModel["x"].SetDouble(position.first);
             vehicleModel["y"].SetDouble(position.second);
             vehicleModel["speed"].SetDouble(abs(direction.first) + abs(direction.second));
+
+            double angle = atan2(direction.second, direction.first) * 180 / M_PI;
+            if (angle < 0) angle += 360;
+            vehicleModel["direction"].SetInt(static_cast<int>(angle));
         }
 
         threadSafeQueue.push("update");
 
-        this_thread::sleep_for(chrono::milliseconds(250));
+        this_thread::sleep_for(chrono::milliseconds(INTERVAL_TIME_MS));
     }
 }
 
