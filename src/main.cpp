@@ -1,14 +1,14 @@
 #include <aws/crt/UUID.h>
-//#include "rapidjson/document.h"
-//#include "rapidjson/writer.h"
-//#include "rapidjson/stringbuffer.h"
-#include "rapidjson/reader.h"
+#include "rapidjson/document.h"
 
 #include <iostream>
 #include <mutex>
+#include <vector>
+#include <chrono>
 
 #include "CommandLineUtils.h"
 #include "Communication.h"
+#include "rapidjson/stringbuffer.h"
 
 using namespace Aws::Crt;
 using namespace rapidjson;
@@ -47,11 +47,36 @@ int main(int argc, char *argv[]) {
         topic
     );
 
+    vector<Document> vehicles;
+
     while(true) {
-//        Document doc;
-//        doc.Parse(message.c_str());
-        cout << "msg: " << threadSafeQueue.front();
+        string message = threadSafeQueue.front();  // blocking
         threadSafeQueue.pop();
+
+        // parse string->json
+        Document doc;
+        doc.Parse(message.c_str());
+
+        // add received timestamp
+        // TODO: Using server time here is preferred as it will cause critical issues if a machines time is wrong
+        auto timestamp = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count();
+        doc.AddMember("received", timestamp, doc.GetAllocator());
+
+        // existing vehicle, update the record
+        bool updated = false;
+        for (auto& vehicle : vehicles) {
+            if (strcmp(vehicle["id"].GetString(), doc["id"].GetString()) == 0) {
+                vehicle.Swap(doc);
+                updated = true;
+                break;
+            }
+        }
+        // new vehicle, add it
+        if (!updated) {
+            vehicles.push_back(std::move(doc));
+        }
+
+        cout << vehicles.size() << " vehicles in the array" << endl;
     }
 }
 
@@ -78,4 +103,12 @@ int main(int argc, char *argv[]) {
     "joined": 1644723600,
     "received": 1644723650
 }
+
+vehicle["x"].SetDouble(doc["x"].GetDouble());
+vehicle["y"].SetDouble(doc["y"].GetDouble());
+vehicle["isBraking"].SetBool(doc["isBraking"].GetBool());
+vehicle["speed"].SetDouble(doc["speed"].GetDouble());
+vehicle["direction"].SetInt(doc["direction"].GetInt());
+vehicle["joined"].SetUint(doc["joined"].GetUint());
+vehicle["received"].SetUint(doc["received"].GetUint());
  */
