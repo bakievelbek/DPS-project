@@ -9,15 +9,15 @@
  * 1s * 250ms cornering = 4 frames = 0.5 * SPEED_LIMIT for each frame outside the boundary
  */
 
-double START_X = 300;
+double START_X = 200;
 double START_Y = 300;
 double SPEED_LIMIT = 30;  // pixels/frame
 double SPEED_X = -SPEED_LIMIT;
-double SPEED_Y = 0;  // -SPEED_LIMIT;
+double SPEED_Y = -SPEED_LIMIT;  // -SPEED_LIMIT;
 int BOUNDARY_TL = 50;
 int BOUNDARY_BR = 550;
 
-VehicleControl::VehicleControl() {
+VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSafeQueue) {
     pair<double, double> position = make_pair(START_X, START_Y);
     pair<double, double> direction = make_pair(SPEED_X, SPEED_Y);
 
@@ -26,6 +26,15 @@ VehicleControl::VehicleControl() {
 
         direction = changeDirectionAtBoundary(position, direction);
         position = move(position, direction);
+
+        #pragma omp critical
+        {
+            vehicleModel["x"].SetDouble(position.first);
+            vehicleModel["y"].SetDouble(position.second);
+            vehicleModel["speed"].SetDouble(abs(direction.first) + abs(direction.second));
+        }
+
+        threadSafeQueue.push("update");
 
         this_thread::sleep_for(chrono::milliseconds(250));
     }

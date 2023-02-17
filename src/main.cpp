@@ -1,5 +1,6 @@
 #include <aws/crt/UUID.h>
 #include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
 #include <iostream>
@@ -10,6 +11,7 @@
 
 #include "CommandLineUtils.h"
 #include "Communication.h"
+#include "ThreadSafeQueue.h"
 #include "VehicleControl.h"
 
 using namespace Aws::Crt;
@@ -40,28 +42,48 @@ int main(int argc, char *argv[]) {
 
     auto connection = cmdUtils.BuildMQTTConnection();
 
+    // initialise this vehicles model
+    String vehicleLabel = UUID().ToString();
+    Document vehicleModel;
+    vehicleModel.SetObject();
+    Value id(vehicleLabel.c_str(), vehicleModel.GetAllocator());
+    Value x(0.0);
+    Value y(0.0);
+    Value isBraking(false);
+    Value speed(0.0);
+    Value direction(0);
+    Value joined(0);
+    vehicleModel.AddMember("id", id, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("x", x, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("y", y, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("isBraking", isBraking, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("speed", speed, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("direction", direction, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("joined", joined, vehicleModel.GetAllocator());
+
     omp_set_nested(1);
     cout << "\nStarting.." << endl;
     cout << "Processors " << omp_get_num_procs() << endl;
 
-    #pragma omp parallel sections default(none) shared(cout, connection, clientId, topic) num_threads(2)
+    ThreadSafeQueue threadSafeQueue;
+
+    #pragma omp parallel sections default(none) shared(cout, threadSafeQueue, connection, clientId, topic, vehicleModel) num_threads(2)
     {
         #pragma omp section
         {
             #pragma omp critical
             cout << "* Starting VehicleControl in Thread: " << omp_get_thread_num() << endl;
 
-            VehicleControl();
+            auto vehicleControl = VehicleControl(vehicleModel, threadSafeQueue);
         }
         #pragma omp section
         {
             #pragma omp critical
             cout << "* Starting AWS IoT communication in Thread: " << omp_get_thread_num() << endl;
 
-            ThreadSafeQueue threadSafeQueue;
-
-            // open the connection to AWS IoT (MQTT) and listen for messages
-            Communication(
+            // open the connection to AWS IoT (MQTT)
+            // event based messages will be returned in the treadSafeQueued
+            Communication communication = Communication(
                     threadSafeQueue,
                     connection,
                     clientId,
@@ -71,8 +93,21 @@ int main(int argc, char *argv[]) {
             vector<Document> vehicles;
 
             while (true) {
-                string message = threadSafeQueue.front();  // blocking
+                // block until AWS message received
+                string message = threadSafeQueue.front();
                 threadSafeQueue.pop();
+
+                if (strcmp(message.c_str(), "update") == 0) {
+                    // convert the vehicle model json to a string
+                    StringBuffer buffer;
+                    Writer<StringBuffer> writer(buffer);
+                    #pragma omp critical
+                    vehicleModel.Accept(writer);
+
+                    // publish to the AWS channel
+                    communication.publish(buffer.GetString());
+                    continue;
+                }
 
                 // parse string->json
                 Document doc;
@@ -97,8 +132,6 @@ int main(int argc, char *argv[]) {
                 if (!updated) {
                     vehicles.push_back(std::move(doc));
                 }
-
-                cout << vehicles.size() << " vehicles in the array" << endl;
             }
         }
     }
@@ -127,12 +160,4 @@ int main(int argc, char *argv[]) {
     "joined": 1644723600,
     "received": 1644723650
 }
-
-vehicle["x"].SetDouble(doc["x"].GetDouble());
-vehicle["y"].SetDouble(doc["y"].GetDouble());
-vehicle["isBraking"].SetBool(doc["isBraking"].GetBool());
-vehicle["speed"].SetDouble(doc["speed"].GetDouble());
-vehicle["direction"].SetInt(doc["direction"].GetInt());
-vehicle["joined"].SetUint(doc["joined"].GetUint());
-vehicle["received"].SetUint(doc["received"].GetUint());
  */
