@@ -14,9 +14,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 #set warnings
 if (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX /wd4068)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX /wd4068 -openmp)
 else ()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wno-long-long -pedantic -Werror)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wno-long-long -pedantic -Werror -fopenmp)
 endif ()
 
 find_package(aws-crt-cpp REQUIRED)

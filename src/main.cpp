@@ -1,14 +1,16 @@
 #include <aws/crt/UUID.h>
 #include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
 
 #include <iostream>
 #include <mutex>
 #include <vector>
 #include <chrono>
+#include <omp.h>
 
 #include "CommandLineUtils.h"
 #include "Communication.h"
-#include "rapidjson/stringbuffer.h"
+#include "VehicleControl.h"
 
 using namespace Aws::Crt;
 using namespace rapidjson;
@@ -38,45 +40,65 @@ int main(int argc, char *argv[]) {
 
     auto connection = cmdUtils.BuildMQTTConnection();
 
-    ThreadSafeQueue threadSafeQueue;
+    omp_set_nested(1);
 
-    Communication(
-        threadSafeQueue,
-        connection,
-        clientId,
-        topic
-    );
+    cout << omp_get_num_procs() << " procs" << endl;
 
-    vector<Document> vehicles;
+    #pragma omp parallel default(none) shared(cout, connection, clientId, topic) num_threads(2)
+    {
+        cout << "thread: " << omp_get_thread_num() << endl;
 
-    while(true) {
-        string message = threadSafeQueue.front();  // blocking
-        threadSafeQueue.pop();
+        if (omp_get_thread_num() == 0) {
+            cout << "part 1 in thread " << omp_get_thread_num() << endl;
+            cout << "creating VehicleControl.." << endl;
+            VehicleControl();
+        }
+        else {
+            cout << "part 2 in thread " << omp_get_thread_num() << endl;
 
-        // parse string->json
-        Document doc;
-        doc.Parse(message.c_str());
+            ThreadSafeQueue threadSafeQueue;
 
-        // add received timestamp
-        // TODO: Using server time here is preferred as it will cause critical issues if a machines time is wrong
-        auto timestamp = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count();
-        doc.AddMember("received", timestamp, doc.GetAllocator());
+            // open the connection to AWS IoT (MQTT) and listen for messages
+            Communication(
+                    threadSafeQueue,
+                    connection,
+                    clientId,
+                    topic
+            );
 
-        // existing vehicle, update the record
-        bool updated = false;
-        for (auto& vehicle : vehicles) {
-            if (strcmp(vehicle["id"].GetString(), doc["id"].GetString()) == 0) {
-                vehicle.Swap(doc);
-                updated = true;
-                break;
+            vector<Document> vehicles;
+
+            while (true) {
+                string message = threadSafeQueue.front();  // blocking
+                threadSafeQueue.pop();
+
+                // parse string->json
+                Document doc;
+                doc.Parse(message.c_str());
+
+                // add received timestamp
+                // TODO: Using server time here is preferred as it will cause critical issues if a machines time is wrong
+                auto timestamp = chrono::duration_cast<chrono::seconds>(
+                        chrono::system_clock::now().time_since_epoch()).count();
+                doc.AddMember("received", timestamp, doc.GetAllocator());
+
+                // existing vehicle, update the record
+                bool updated = false;
+                for (auto &vehicle: vehicles) {
+                    if (strcmp(vehicle["id"].GetString(), doc["id"].GetString()) == 0) {
+                        vehicle.Swap(doc);
+                        updated = true;
+                        break;
+                    }
+                }
+                // new vehicle, add it
+                if (!updated) {
+                    vehicles.push_back(std::move(doc));
+                }
+
+                cout << vehicles.size() << " vehicles in the array" << endl;
             }
         }
-        // new vehicle, add it
-        if (!updated) {
-            vehicles.push_back(std::move(doc));
-        }
-
-        cout << vehicles.size() << " vehicles in the array" << endl;
     }
 }
 
