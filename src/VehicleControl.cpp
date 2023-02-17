@@ -22,13 +22,12 @@ VehicleControl::VehicleControl() {
     pair<double, double> direction = make_pair(SPEED_X, SPEED_Y);
 
     while (true) {
-        std::cout << "x:" << position.first << " y:" << position.second << "\n";
+        // std::cout << "x:" << position.first << " y:" << position.second << "\n";
 
         direction = changeDirectionAtBoundary(position, direction);
         position = move(position, direction);
 
-//        sleep(1);
-        getchar();
+        this_thread::sleep_for(chrono::milliseconds(250));
     }
 }
 

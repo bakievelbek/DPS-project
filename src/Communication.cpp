@@ -16,7 +16,9 @@ Communication::Communication(ThreadSafeQueue threadSafeQueue, std::shared_ptr<Mq
             connectionCompletedPromise.set_value(false);
         }
         else {
+            #pragma omp critical
             fprintf(stdout, "Connection completed with return code %d\n", returnCode);
+
             connectionCompletedPromise.set_value(true);
         }
     };
@@ -44,7 +46,9 @@ Communication::Communication(ThreadSafeQueue threadSafeQueue, std::shared_ptr<Mq
     connection->OnConnectionResumed = std::move(onResumed);
 
     // connect
+    #pragma omp critical
     fprintf(stdout, "Connecting...\n");
+
     if (!connection->Connect(clientId.c_str(), false, 1000)) {
         fprintf(stderr, "MQTT Connection failed with error %s\n", ErrorDebugString(connection->LastError()));
         exit(-1);
@@ -67,6 +71,7 @@ Communication::Communication(ThreadSafeQueue threadSafeQueue, std::shared_ptr<Mq
                             exit(-1);
                         }
                         else {
+                            #pragma omp critical
                             fprintf(stdout, "Subscribe on topic %s on packetId %d Succeeded\n", topic.c_str(), packetId);
                         }
                     }

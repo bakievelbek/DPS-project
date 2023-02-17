@@ -41,20 +41,22 @@ int main(int argc, char *argv[]) {
     auto connection = cmdUtils.BuildMQTTConnection();
 
     omp_set_nested(1);
+    cout << "\nStarting.." << endl;
+    cout << "Processors " << omp_get_num_procs() << endl;
 
-    cout << omp_get_num_procs() << " procs" << endl;
-
-    #pragma omp parallel default(none) shared(cout, connection, clientId, topic) num_threads(2)
+    #pragma omp parallel sections default(none) shared(cout, connection, clientId, topic) num_threads(2)
     {
-        cout << "thread: " << omp_get_thread_num() << endl;
+        #pragma omp section
+        {
+            #pragma omp critical
+            cout << "* Starting VehicleControl in Thread: " << omp_get_thread_num() << endl;
 
-        if (omp_get_thread_num() == 0) {
-            cout << "part 1 in thread " << omp_get_thread_num() << endl;
-            cout << "creating VehicleControl.." << endl;
             VehicleControl();
         }
-        else {
-            cout << "part 2 in thread " << omp_get_thread_num() << endl;
+        #pragma omp section
+        {
+            #pragma omp critical
+            cout << "* Starting AWS IoT communication in Thread: " << omp_get_thread_num() << endl;
 
             ThreadSafeQueue threadSafeQueue;
 
