@@ -1,4 +1,4 @@
-build1.bat@echo off
+@echo off
 
 @REM del Release\*.exe
 @REM cmake -DCMAKE_PREFIX_PATH="C:\code\aws-iot-device-sdk-cpp-v2-build" -DCMAKE_BUILD_TYPE="Release" .
