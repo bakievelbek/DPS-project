@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
     Document vehicleModel;
     vehicleModel.SetObject();
     Value id(vehicleLabel.c_str(), vehicleModel.GetAllocator());
-    Value x(0.0);
-    Value y(0.0);
+    Value x(200.0);
+    Value y(450.0);
     Value isBraking(false);
     Value speed(0.0);
     Value direction(0);
@@ -152,9 +152,11 @@ int main(int argc, char *argv[]) {
                     uint32_t unix_timestamp = static_cast<uint32_t>(now);
 
                     if (vehicleModel["joined"].GetUint() == 0) {
-                        vehicleModel["joined"].SetUint(unix_timestamp);
                         #pragma omp critical
-                        cout << "Platoon joined" << endl;
+                        {
+                            vehicleModel["joined"].SetUint(unix_timestamp);
+                            cout << "Platoon joined" << endl;
+                        }
                     }
                     else {
                         #pragma omp critical
@@ -169,9 +171,13 @@ int main(int argc, char *argv[]) {
                         cout << "Not in a platoon" << endl;
                     }
                     else {
-                        vehicleModel["joined"].SetUint(0);
                         #pragma omp critical
-                        cout << "Platoon left" << endl;
+                        {
+                            vehicleModel["joined"].SetUint(1);
+                            vehicleModel["x"].SetDouble(300);
+                            vehicleModel["y"].SetDouble(300);
+                            cout << "Platoon left" << endl;
+                        }
                     }
                 }
             }
