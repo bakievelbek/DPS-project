@@ -3,11 +3,13 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
+#include <chrono>
+#include <conio.h>
+#include <ctime>
 #include <iostream>
+#include <omp.h>
 #include <mutex>
 #include <vector>
-#include <chrono>
-#include <omp.h>
 
 #include "CommandLineUtils.h"
 #include "Communication.h"
@@ -67,7 +69,7 @@ int main(int argc, char *argv[]) {
 
     ThreadSafeQueue threadSafeQueue;
 
-    #pragma omp parallel sections default(none) shared(cout, threadSafeQueue, connection, clientId, topic, vehicleModel) num_threads(2)
+    #pragma omp parallel sections default(none) shared(cout, threadSafeQueue, connection, clientId, topic, vehicleModel) num_threads(3)
     {
         #pragma omp section
         {
@@ -76,6 +78,7 @@ int main(int argc, char *argv[]) {
 
             auto vehicleControl = VehicleControl(vehicleModel, threadSafeQueue);
         }
+
         #pragma omp section
         {
             #pragma omp critical
@@ -131,6 +134,45 @@ int main(int argc, char *argv[]) {
                 // new vehicle, add it
                 if (!updated) {
                     vehicles.push_back(std::move(doc));
+                }
+            }
+        }
+
+        #pragma omp section
+        {
+            this_thread::sleep_for(chrono::seconds(2));
+            cout << endl << "Press J <enter> to join, or L <enter> to leave" << endl;
+            char c;
+            while(true) {
+                c = (char) getchar();
+
+                // request to join
+                if (c == 'j' || c == 'J') {
+                    time_t now = time(nullptr);
+                    uint32_t unix_timestamp = static_cast<uint32_t>(now);
+
+                    if (vehicleModel["joined"].GetUint() == 0) {
+                        vehicleModel["joined"].SetUint(unix_timestamp);
+                        #pragma omp critical
+                        cout << "Platoon joined" << endl;
+                    }
+                    else {
+                        #pragma omp critical
+                        cout << "Already in a platoon" << endl;
+                    }
+                }
+
+                // leave
+                if (c == 'l' || c == 'L') {
+                    if (vehicleModel["joined"].GetUint() == 0) {
+                        #pragma omp critical
+                        cout << "Not in a platoon" << endl;
+                    }
+                    else {
+                        vehicleModel["joined"].SetUint(0);
+                        #pragma omp critical
+                        cout << "Platoon left" << endl;
+                    }
                 }
             }
         }

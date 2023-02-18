@@ -30,7 +30,9 @@ VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSa
         {
             vehicleModel["x"].SetDouble(position.first);
             vehicleModel["y"].SetDouble(position.second);
-            vehicleModel["speed"].SetDouble(abs(direction.first) + abs(direction.second));
+            double speed = abs(direction.first) + abs(direction.second);
+            vehicleModel["speed"].SetDouble(speed);
+            vehicleModel["isBraking"].SetBool(speed != SPEED_LIMIT * 2);
 
             double angle = atan2(direction.second, direction.first) * 180 / M_PI;
             if (angle < 0) angle += 360;
