@@ -14,9 +14,9 @@ double START_Y = 400;
 double SPEED_LIMIT = 30;  // pixels/frame
 double SPEED_X = -SPEED_LIMIT;
 double SPEED_Y = -SPEED_LIMIT;  // -SPEED_LIMIT;
-int BOUNDARY_TL = 50;
+int BOUNDARY_TL = 100;
 int BOUNDARY_BR = 550;
-int INTERVAL_TIME_MS = 250;  // time before updating in ms
+int INTERVAL_TIME_MS = 250;  // 250;  // time before updating in ms
 
 VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSafeQueue) {
     pair<double, double> position = make_pair(START_X, START_Y);
