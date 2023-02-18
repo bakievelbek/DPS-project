@@ -22,6 +22,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     ApiHandle apiHandle;
+    string following = "";
 
     /*********************** Parse Arguments ***************************/
     Utils::CommandLineUtils cmdUtils = Utils::CommandLineUtils();
@@ -68,9 +69,11 @@ int main(int argc, char *argv[]) {
     cout << "Processors " << omp_get_num_procs() << endl;
 
     ThreadSafeQueue threadSafeQueue;
+    vector<Document> vehicles;
 
-    #pragma omp parallel sections default(none) shared(cout, threadSafeQueue, connection, clientId, topic, vehicleModel) num_threads(3)
+    #pragma omp parallel sections default(none) shared(cout, threadSafeQueue, connection, clientId, topic, vehicles, vehicleModel) num_threads(3)
     {
+        // VEHICLE CONTROLLER
         #pragma omp section
         {
             #pragma omp critical
@@ -79,6 +82,7 @@ int main(int argc, char *argv[]) {
             auto vehicleControl = VehicleControl(vehicleModel, threadSafeQueue);
         }
 
+        // AWS CONNECTION
         #pragma omp section
         {
             #pragma omp critical
@@ -92,8 +96,6 @@ int main(int argc, char *argv[]) {
                     clientId,
                     topic
             );
-
-            vector<Document> vehicles;
 
             while (true) {
                 // block until AWS message received
@@ -138,6 +140,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        // USER INTERFACE
         #pragma omp section
         {
             this_thread::sleep_for(chrono::seconds(2));
@@ -154,7 +157,18 @@ int main(int argc, char *argv[]) {
                     if (vehicleModel["joined"].GetUint() == 0) {
                         #pragma omp critical
                         {
+                            // sort vehicles by joined timestamp (0 means platoon empty)
+                            auto timestamp_extractor = [](const Document& doc) {
+                                return doc["timestamp"].GetUint();
+                            };
+                            std::sort(vehicles.begin(), vehicles.end(), [&](const Document& lhs, const Document& rhs) {
+                                return timestamp_extractor(lhs) < timestamp_extractor(rhs);
+                            });
+
+                            cout << "last vehicle id: " << vehicles.back()["id"].GetString() << endl;
+
                             vehicleModel["joined"].SetUint(unix_timestamp);
+
                             cout << "Platoon joined" << endl;
                         }
                     }
@@ -173,9 +187,10 @@ int main(int argc, char *argv[]) {
                     else {
                         #pragma omp critical
                         {
-                            vehicleModel["joined"].SetUint(1);
+                            vehicleModel["joined"].SetUint(0);
                             vehicleModel["x"].SetDouble(300);
                             vehicleModel["y"].SetDouble(300);
+                            following = "";
                             cout << "Platoon left" << endl;
                         }
                     }
