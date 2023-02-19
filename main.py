@@ -55,18 +55,13 @@ cmdUtils.add_common_topic_message_commands()
 cmdUtils.add_common_proxy_commands()
 cmdUtils.add_common_logging_commands()
 cmdUtils.register_command("endpoint", "<str>", "endpoint", True, str)
-cmdUtils.register_command("key",
-                          "certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-private.pem.key",
-                          "Path to your key in PEM format.", True, str,
-                          default='certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-private.pem.key')
-cmdUtils.register_command("cert",
-                          "certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-certificate.pem.crt",
-                          "Path to your client certificate in PEM format.", True, str,
-                          default='certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-certificate.pem.crt')
+cmdUtils.register_command("key", "<path>", "Path to your key in PEM format.", True, str)
+cmdUtils.register_command("cert", "<path>", "Path to your client certificate in PEM format.", True, str)
 cmdUtils.register_command("client_id", "<str>", "Client ID to use for MQTT connection (optional, default='test-*').")
 cmdUtils.register_command("topic", "platoon/channel", "topic", True, str)
 cmdUtils.register_command("port", "<int>", "Connection port. AWS IoT supports 443 and 8883 (optional, default=auto).",
                           type=int)
+
 
 cmdUtils.get_args()
 received_all_event = threading.Event()
@@ -117,7 +112,6 @@ def on_message_received(topic, payload, dup, qos, retain, **kwargs):
         "joined": {'Yes' if data["joined"] else 'No'},
         "following-x": {data['following-x']}, 
         "following-y": {data['following-y']}, 
-        "following-direction": {data['following-direction']}
     """
     canvas.create_text(750, y_start + 80, text=text, fill='black', tags="main_text")
 
