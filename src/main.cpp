@@ -22,7 +22,6 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     ApiHandle apiHandle;
-    string following = "";
 
     /*********************** Parse Arguments ***************************/
     Utils::CommandLineUtils cmdUtils = Utils::CommandLineUtils();
@@ -33,7 +32,6 @@ int main(int argc, char *argv[]) {
     cmdUtils.AddCommonProxyCommands();
     cmdUtils.AddCommonTopicMessageCommands();
     cmdUtils.RegisterCommand("client_id", "<str>", "Client id to use (optional, default='test-*')");
-    cmdUtils.RegisterCommand("count", "<int>", "The number of messages to send (optional, default='10')");
     cmdUtils.RegisterCommand("port_override", "<int>", "The port override to use when connecting (optional)");
     cmdUtils.AddLoggingCommands();
     const char **const_argv = (const char **)argv;
@@ -70,8 +68,9 @@ int main(int argc, char *argv[]) {
 
     ThreadSafeQueue threadSafeQueue;
     vector<Document> vehicles;
+    String following = "";
 
-    #pragma omp parallel sections default(none) shared(cout, threadSafeQueue, connection, clientId, topic, vehicles, vehicleModel) num_threads(3)
+    #pragma omp parallel sections default(none) shared(cout, threadSafeQueue, connection, clientId, topic, following, vehicles, vehicleModel) num_threads(3)
     {
         // VEHICLE CONTROLLER
         #pragma omp section
@@ -135,6 +134,7 @@ int main(int argc, char *argv[]) {
                 }
                 // new vehicle, add it
                 if (!updated) {
+                    cout << "+ " << doc["id"].GetString() << endl;
                     vehicles.push_back(std::move(doc));
                 }
             }
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
         // USER INTERFACE
         #pragma omp section
         {
-            this_thread::sleep_for(chrono::seconds(2));
+            this_thread::sleep_for(chrono::seconds(3));
             cout << endl << "Press J <enter> to join, or L <enter> to leave" << endl;
             char c;
             while(true) {
@@ -157,15 +157,20 @@ int main(int argc, char *argv[]) {
                     if (vehicleModel["joined"].GetUint() == 0) {
                         #pragma omp critical
                         {
-                            // sort vehicles by joined timestamp (0 means platoon empty)
-                            auto timestamp_extractor = [](const Document& doc) {
-                                return doc["timestamp"].GetUint();
+                            // find the last vehicle in the platoon
+                            auto non_zero_timestamp = [](const Document& doc) {
+                                return doc["joined"].GetUint() != 0;
                             };
-                            std::sort(vehicles.begin(), vehicles.end(), [&](const Document& lhs, const Document& rhs) {
-                                return timestamp_extractor(lhs) < timestamp_extractor(rhs);
-                            });
+                            auto last_non_zero_vehicle = std::find_if(vehicles.rbegin(), vehicles.rend(), non_zero_timestamp);
 
-                            cout << "last vehicle id: " << vehicles.back()["id"].GetString() << endl;
+                            if (last_non_zero_vehicle != vehicles.rend()) {
+                                // nothing found, you're the leader!
+                                Document& last_non_zero_vehicle_doc = *last_non_zero_vehicle;
+                                following = last_non_zero_vehicle_doc["id"].GetString();
+                            } else {
+                                cout << "You're the platoon leader" << endl;
+                                following = "";
+                            }
 
                             vehicleModel["joined"].SetUint(unix_timestamp);
 
@@ -188,8 +193,8 @@ int main(int argc, char *argv[]) {
                         #pragma omp critical
                         {
                             vehicleModel["joined"].SetUint(0);
-                            vehicleModel["x"].SetDouble(300);
-                            vehicleModel["y"].SetDouble(300);
+                            vehicleModel["x"].SetDouble(250);
+                            vehicleModel["y"].SetDouble(350);
                             following = "";
                             cout << "Platoon left" << endl;
                         }
