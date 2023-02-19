@@ -164,6 +164,9 @@ int main(int argc, char *argv[]) {
         // USER INTERFACE
         #pragma omp section
         {
+            #pragma omp critical
+            cout << "* Starting User Interface in Thread: " << omp_get_thread_num() << endl;
+
             this_thread::sleep_for(chrono::seconds(3));
             cout << endl << "Press J <enter> to join, or L <enter> to leave" << endl;
             char c;
