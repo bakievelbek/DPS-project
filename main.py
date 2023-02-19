@@ -8,15 +8,6 @@ from tkinter import *
 WIDTH = 980
 HEIGHT = 800
 
-truck_colors = {
-    1: 'black',
-    2: 'red',
-    3: 'blue',
-    4: 'green',
-    5: 'magenta',
-    6: 'yellow'
-}
-
 win = Tk()
 win.title("Truck Canvas")
 win.geometry("%sx%s" % (WIDTH, HEIGHT))
@@ -64,18 +55,13 @@ cmdUtils.add_common_topic_message_commands()
 cmdUtils.add_common_proxy_commands()
 cmdUtils.add_common_logging_commands()
 cmdUtils.register_command("endpoint", "<str>", "endpoint", True, str)
-cmdUtils.register_command("key",
-                          "certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-private.pem.key",
-                          "Path to your key in PEM format.", True, str,
-                          default='certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-private.pem.key')
-cmdUtils.register_command("cert",
-                          "certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-certificate.pem.crt",
-                          "Path to your client certificate in PEM format.", True, str,
-                          default='certs/985f54b692625fa585d1e985ab82d7fb9b18e43ced9445768f045c503bf2fb17-certificate.pem.crt')
+cmdUtils.register_command("key", "<path>", "Path to your key in PEM format.", True, str)
+cmdUtils.register_command("cert", "<path>", "Path to your client certificate in PEM format.", True, str)
 cmdUtils.register_command("client_id", "<str>", "Client ID to use for MQTT connection (optional, default='test-*').")
 cmdUtils.register_command("topic", "platoon/channel", "topic", True, str)
 cmdUtils.register_command("port", "<int>", "Connection port. AWS IoT supports 443 and 8883 (optional, default=auto).",
                           type=int)
+
 
 cmdUtils.get_args()
 received_all_event = threading.Event()
@@ -109,28 +95,25 @@ def on_resubscribe_complete(resubscribe_future):
 def on_message_received(topic, payload, dup, qos, retain, **kwargs):
     data = json.loads(payload.decode('utf-8'))
     if not trucks_dicts.get(data['id']):
-        trucks_dicts[data["id"]] = {"num": len(trucks_dicts) % 6 + 1}
+        trucks_dicts[data['id']] = {'num': len(trucks_dicts) % 6 + 1}
 
-    y_start = (trucks_dicts[data["id"]]["num"] - 1) * 160
-    y_end = trucks_dicts[data["id"]]["num"] * 160
+    y_start = (trucks_dicts[data['id']]['num'] - 1) * 160
+    y_end = trucks_dicts[data['id']]['num'] * 160
 
-    color = truck_colors[trucks_dicts[data["id"]]["num"]]
-
-    canvas.create_rectangle(600, y_start, 980, y_end, outline="black", fill=f"{color}", width=2)
+    canvas.create_rectangle(600, y_start, 980, y_end, outline="black", fill='yellow', width=2)
 
     text = f"""
-        Truck ID: {data["id"]}
+        Truck ID: {data['id']}
         "x": {data["x"]},
         "y": {data["y"]},
         "isBraking": {data["is-braking"]},
-        "speed": {data["speed"]},
-        "direction": {data["direction"]},
-        "joined": {"Yes" if data["joined"] else "No"},
-        "following-x": {data["following-x"]}, 
-        "following-y": {data["following-y"]}
+        "speed": {data['speed']},
+        "direction": {data['direction']},
+        "joined": {'Yes' if data["joined"] else 'No'},
+        "following-x": {data['following-x']}, 
+        "following-y": {data['following-y']}, 
     """
-
-    canvas.create_text(750, y_start + 80, text=text, fill='white', tags="main_text")
+    canvas.create_text(750, y_start + 80, text=text, fill='black', tags="main_text")
 
     canvas.coords(f"truck0{trucks_dicts[data['id']]['num']}", data["x"], data["y"])
 
