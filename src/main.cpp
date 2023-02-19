@@ -80,10 +80,10 @@ int main(int argc, char *argv[]) {
     vehicleModel.AddMember("direction", direction, vehicleModel.GetAllocator());
     vehicleModel.AddMember("joined", joined, vehicleModel.GetAllocator());
 
-    omp_set_nested(1);
     cout << endl << "Starting.. (" << vehicleLabel << ")" << endl;
     cout << "Processors " << omp_get_num_procs() << endl << endl;
 
+    omp_set_nested(1);
     ThreadSafeQueue threadSafeQueue;
     vector<Document> vehicles;
     String following = "";

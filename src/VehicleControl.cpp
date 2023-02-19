@@ -21,7 +21,6 @@ VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSa
     pair<double, double> direction = make_pair(SPEED_X, SPEED_Y);
     pair<double, double> position;
 
-
     while (true) {
         #pragma omp critical
         {
