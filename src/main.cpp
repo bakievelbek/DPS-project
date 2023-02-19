@@ -20,6 +20,22 @@ using namespace Aws::Crt;
 using namespace rapidjson;
 using namespace std;
 
+// find the last vehicle in the platoon
+Document& getLastVehicle(vector<Document> &vehicles) {
+    auto it = std::remove_if(vehicles.begin(), vehicles.end(),
+                             [](const Document& doc) {
+                                 return doc["joined"].GetUint() == 0;
+                             });
+    vehicles.erase(it, vehicles.end());
+
+    std::sort(vehicles.begin(), vehicles.end(),
+              [](const Document& lhs, const Document& rhs) {
+                  return lhs["joined"].GetUint() < rhs["joined"].GetUint();
+              });
+
+    return vehicles.back();
+}
+
 int main(int argc, char *argv[]) {
     ApiHandle apiHandle;
 
@@ -157,17 +173,15 @@ int main(int argc, char *argv[]) {
                     if (vehicleModel["joined"].GetUint() == 0) {
                         #pragma omp critical
                         {
-                            // find the last vehicle in the platoon
-                            auto non_zero_timestamp = [](const Document& doc) {
-                                return doc["joined"].GetUint() != 0;
-                            };
-                            auto last_non_zero_vehicle = std::find_if(vehicles.rbegin(), vehicles.rend(), non_zero_timestamp);
+                            // find the last vehicle in the platoon where joined != 0
+                            Document& lastVehicle = getLastVehicle(vehicles);
 
-                            if (last_non_zero_vehicle != vehicles.rend()) {
+                            if (lastVehicle.HasMember("id")) {
+                                following = lastVehicle["id"].GetString();
+                                cout << "following: " << following << endl;
+                            }
+                            else {
                                 // nothing found, you're the leader!
-                                Document& last_non_zero_vehicle_doc = *last_non_zero_vehicle;
-                                following = last_non_zero_vehicle_doc["id"].GetString();
-                            } else {
                                 cout << "You're the platoon leader" << endl;
                                 following = "";
                             }
