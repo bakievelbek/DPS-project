@@ -9,10 +9,10 @@
  * 1s * 250ms cornering = 4 frames = 0.5 * SPEED_LIMIT for each frame outside the boundary
  */
 
-double SPEED_LIMIT = 30;  // pixels/frame
+double SPEED_LIMIT = 20;  // pixels/frame
 int BOUNDARY_TL = 100;
-int BOUNDARY_BR = 550;
-int INTERVAL_TIME_MS = 500;  // frame interval (update time in ms)
+int BOUNDARY_BR = 500;
+int INTERVAL_TIME_MS = 250;  // frame interval (update time in ms)
 
 VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSafeQueue) {
     double SPEED_X = SPEED_LIMIT * (rand() % 2 == 0 ? -1 : 1);
@@ -24,11 +24,36 @@ VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSa
     while (true) {
         #pragma omp critical
         {
-            // get the position
+            // get the vehicleModel data
             position = make_pair(vehicleModel["x"].GetDouble(), vehicleModel["y"].GetDouble());
+            double followingX = vehicleModel["following-x"].GetDouble();
+            double followingY = vehicleModel["following-y"].GetDouble();
 
-            // update the position and direction
-            direction = changeDirectionAtBoundary(position, direction);
+            // check if we're in a platoon and following someone
+            if (followingX + followingY == 0) {
+                // MANUAL MODE - not in a platoon or we are the leader
+                direction = changeDirectionAtBoundary(position, direction);
+            }
+            else {
+                // AUTONOMOUS MODE - following another vehicle
+                double distance = getDistance(position.first, position.second, followingX, followingY);
+
+                // adjust speed depending on distance
+                double follow_speed = SPEED_LIMIT;
+                if (distance > 120) follow_speed *= 1.4;
+                if (distance < 90) follow_speed *= .6;
+
+                // move in the direction of the leading vehicle
+                double moveX = 0, moveY = 0;
+                if (position.first < followingX) moveX = follow_speed;
+                if (position.first > followingX) moveX = -follow_speed;
+                if (position.second < followingY) moveY = follow_speed;
+                if (position.second > followingY) moveY = -follow_speed;
+
+                direction = make_pair(moveX, moveY);
+            }
+
+            // update the position
             position = move(position, direction);
 
             // write to the vehicleModel
@@ -76,4 +101,9 @@ pair<double, double> VehicleControl::changeDirectionAtBoundary(pair<double, doub
     if (dy > SPEED_LIMIT) dy = SPEED_LIMIT;
 
     return make_pair(dx, dy);
+}
+
+// get distance between two coordinates
+double VehicleControl::getDistance(double x1, double y1, double x2, double y2) {
+    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
 }

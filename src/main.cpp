@@ -66,15 +66,14 @@ int main(int argc, char *argv[]) {
     Document vehicleModel;
     vehicleModel.SetObject();
     Value id(vehicleLabel.c_str(), vehicleModel.GetAllocator());
-    Value x(200.0);
-    Value y(450.0);
+    Value x(rand() % 301 + 150);
+    Value y(rand() % 301 + 150);
     Value isBraking(false);
     Value speed(0.0);
     Value direction(0);
     Value joined(0);
     Value followingX(0);
     Value followingY(0);
-    Value followingDirection(0);
     vehicleModel.AddMember("id", id, vehicleModel.GetAllocator());
     vehicleModel.AddMember("x", x, vehicleModel.GetAllocator());
     vehicleModel.AddMember("y", y, vehicleModel.GetAllocator());
@@ -84,7 +83,6 @@ int main(int argc, char *argv[]) {
     vehicleModel.AddMember("joined", joined, vehicleModel.GetAllocator());
     vehicleModel.AddMember("following-x", followingX, vehicleModel.GetAllocator());
     vehicleModel.AddMember("following-y", followingY, vehicleModel.GetAllocator());
-    vehicleModel.AddMember("following-direction", followingDirection, vehicleModel.GetAllocator());
 
     cout << endl << "Starting with ID: " << vehicleLabel << endl;
     cout << "Processors " << omp_get_num_procs() << endl << endl;
@@ -149,7 +147,6 @@ int main(int argc, char *argv[]) {
                 if (following == doc["id"].GetString()) {
                     vehicleModel["following-x"].SetDouble(doc["x"].GetDouble());
                     vehicleModel["following-y"].SetDouble(doc["y"].GetDouble());
-                    vehicleModel["following-direction"].SetInt(doc["direction"].GetInt());
                 }
 
                 // add received timestamp
@@ -240,7 +237,6 @@ int main(int argc, char *argv[]) {
                             vehicleModel["y"].SetDouble(350);
                             vehicleModel["following-x"].SetDouble(0);
                             vehicleModel["following-y"].SetDouble(0);
-                            vehicleModel["following-direction"].SetInt(0);
                             following = "";
                             cout << "Platoon left" << endl;
                         }

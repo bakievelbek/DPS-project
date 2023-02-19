@@ -20,6 +20,7 @@ public:
 private:
     pair<double, double> move(pair<double, double> position, pair<double, double> direction);
     pair<double, double> changeDirectionAtBoundary(pair<double, double> position, pair<double, double> direction);
+    double getDistance(double x1, double y1, double x2, double y2);
 };
 
 
