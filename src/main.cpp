@@ -37,6 +37,8 @@ String getLastVehicleId(vector<Document> &vehicles) {
 }
 
 int main(int argc, char *argv[]) {
+    srand((uint32_t) time(NULL)); // Seed the random number generator
+
     ApiHandle apiHandle;
 
     /*********************** Parse Arguments ***************************/

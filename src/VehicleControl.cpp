@@ -10,15 +10,17 @@
  */
 
 double SPEED_LIMIT = 30;  // pixels/frame
-double SPEED_X = -SPEED_LIMIT;
-double SPEED_Y = -SPEED_LIMIT;  // -SPEED_LIMIT;
 int BOUNDARY_TL = 100;
 int BOUNDARY_BR = 550;
-int INTERVAL_TIME_MS = 500;  // time before updating in ms
+int INTERVAL_TIME_MS = 500;  // frame interval (update time in ms)
 
 VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSafeQueue) {
+    double SPEED_X = SPEED_LIMIT * (rand() % 2 == 0 ? -1 : 1);
+    double SPEED_Y = SPEED_LIMIT * (rand() % 2 == 0 ? -1 : 1);
+
     pair<double, double> direction = make_pair(SPEED_X, SPEED_Y);
     pair<double, double> position;
+
 
     while (true) {
         #pragma omp critical
