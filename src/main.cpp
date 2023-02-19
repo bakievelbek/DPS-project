@@ -21,19 +21,19 @@ using namespace rapidjson;
 using namespace std;
 
 // find the last vehicle in the platoon
-Document& getLastVehicle(vector<Document> &vehicles) {
-    auto it = std::remove_if(vehicles.begin(), vehicles.end(),
-                             [](const Document& doc) {
-                                 return doc["joined"].GetUint() == 0;
-                             });
-    vehicles.erase(it, vehicles.end());
+String getLastVehicleId(vector<Document> &vehicles) {
+    uint32_t lastJoinedDate = 0;
+    String lastJoinedId = "";
 
-    std::sort(vehicles.begin(), vehicles.end(),
-              [](const Document& lhs, const Document& rhs) {
-                  return lhs["joined"].GetUint() < rhs["joined"].GetUint();
-              });
+    for (auto &doc : vehicles) {
+        uint32_t joined = doc["joined"].GetUint();
+        if (joined > lastJoinedDate) {
+            lastJoinedDate = joined;
+            lastJoinedId = doc["id"].GetString();
+        }
+    }
 
-    return vehicles.back();
+    return lastJoinedId;
 }
 
 int main(int argc, char *argv[]) {
@@ -79,8 +79,8 @@ int main(int argc, char *argv[]) {
     vehicleModel.AddMember("joined", joined, vehicleModel.GetAllocator());
 
     omp_set_nested(1);
-    cout << "\nStarting.." << endl;
-    cout << "Processors " << omp_get_num_procs() << endl;
+    cout << endl << "Starting.. (" << vehicleLabel << ")" << endl;
+    cout << "Processors " << omp_get_num_procs() << endl << endl;
 
     ThreadSafeQueue threadSafeQueue;
     vector<Document> vehicles;
@@ -173,17 +173,17 @@ int main(int argc, char *argv[]) {
                     if (vehicleModel["joined"].GetUint() == 0) {
                         #pragma omp critical
                         {
-                            // find the last vehicle in the platoon where joined != 0
-                            Document& lastVehicle = getLastVehicle(vehicles);
+                            String lastJoinedId = getLastVehicleId(vehicles);
 
-                            if (lastVehicle.HasMember("id")) {
-                                following = lastVehicle["id"].GetString();
-                                cout << "following: " << following << endl;
-                            }
-                            else {
+                            if (lastJoinedId == "") {
                                 // nothing found, you're the leader!
                                 cout << "You're the platoon leader" << endl;
                                 following = "";
+                            }
+                            else {
+                                // vehicle found, follow it
+                                following = lastJoinedId;
+                                cout << "following: " << following << endl;
                             }
 
                             vehicleModel["joined"].SetUint(unix_timestamp);
