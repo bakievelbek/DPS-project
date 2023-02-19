@@ -14,7 +14,7 @@ double SPEED_X = -SPEED_LIMIT;
 double SPEED_Y = -SPEED_LIMIT;  // -SPEED_LIMIT;
 int BOUNDARY_TL = 100;
 int BOUNDARY_BR = 550;
-int INTERVAL_TIME_MS = 250;  // 250;  // time before updating in ms
+int INTERVAL_TIME_MS = 500;  // time before updating in ms
 
 VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSafeQueue) {
     pair<double, double> direction = make_pair(SPEED_X, SPEED_Y);
