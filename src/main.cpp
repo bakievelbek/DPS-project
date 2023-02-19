@@ -183,6 +183,13 @@ int main(int argc, char *argv[]) {
                             else {
                                 // vehicle found, follow it
                                 following = lastJoinedId;
+                                for (auto &doc : vehicles) {
+                                    if (doc["id"].GetString() == following) {
+                                        vehicleModel["x"].SetDouble(doc["x"].GetDouble());
+                                        vehicleModel["y"].SetDouble(doc["y"].GetDouble());
+                                        break;
+                                    }
+                                }
                                 cout << "following: " << following << endl;
                             }
 
