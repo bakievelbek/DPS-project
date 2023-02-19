@@ -5,8 +5,8 @@ import threading
 from awscrt import mqtt
 from tkinter import *
 
-WIDTH = 650
-HEIGHT = 650
+WIDTH = 980
+HEIGHT = 800
 
 win = Tk()
 win.title("Truck Canvas")
@@ -77,7 +77,6 @@ def on_connection_interrupted(connection, error, **kwargs):
     print("Connection interrupted. error: {}".format(error))
 
 
-# Callback when an interrupted connection is re-established.
 def on_connection_resumed(connection, return_code, session_present, **kwargs):
     print("Connection resumed. return_code: {} session_present: {}".format(return_code, session_present))
 
@@ -85,8 +84,6 @@ def on_connection_resumed(connection, return_code, session_present, **kwargs):
         print("Session did not persist. Resubscribing to existing topics...")
         resubscribe_future, _ = connection.resubscribe_existing_topics()
 
-        # Cannot synchronously wait for resubscribe result because we're on the connection's event-loop thread,
-        # evaluate result with a callback instead.
         resubscribe_future.add_done_callback(on_resubscribe_complete)
 
 
@@ -103,7 +100,26 @@ def on_resubscribe_complete(resubscribe_future):
 def on_message_received(topic, payload, dup, qos, retain, **kwargs):
     data = json.loads(payload.decode('utf-8'))
     if not trucks_dicts.get(data['id']):
-        trucks_dicts[data['id']] = {'num': len(trucks_dicts)}
+        trucks_dicts[data['id']] = {'num': len(trucks_dicts) % 6 + 1}
+
+    y_start = (trucks_dicts[data['id']]['num'] - 1) * 160
+    y_end = trucks_dicts[data['id']]['num'] * 160
+
+    canvas.create_rectangle(600, y_start, 980, y_end, outline="black", fill='yellow', width=2)
+
+    text = f"""
+        Truck ID: {data['id']}
+        "x": {data["x"]},
+        "y": {data["y"]},
+        "isBraking": {data["is-braking"]},
+        "speed": {data['speed']},
+        "direction": {data['direction']},
+        "joined": {'Yes' if data["joined"] else 'No'},
+        "following-x": {data['following-x']}, 
+        "following-y": {data['following-y']}, 
+        "following-direction": {data['following-direction']}
+    """
+    canvas.create_text(750, y_start + 80, text=text, fill='black', tags="main_text")
 
     canvas.coords(f"truck0{trucks_dicts[data['id']]['num']}", data["x"], data["y"])
 
