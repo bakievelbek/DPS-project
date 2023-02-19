@@ -8,6 +8,15 @@ from tkinter import *
 WIDTH = 980
 HEIGHT = 800
 
+truck_colors = {
+    1: 'black',
+    2: 'red',
+    3: 'blue',
+    4: 'green',
+    5: 'magenta',
+    6: 'yellow'
+}
+
 win = Tk()
 win.title("Truck Canvas")
 win.geometry("%sx%s" % (WIDTH, HEIGHT))
@@ -62,7 +71,6 @@ cmdUtils.register_command("topic", "platoon/channel", "topic", True, str)
 cmdUtils.register_command("port", "<int>", "Connection port. AWS IoT supports 443 and 8883 (optional, default=auto).",
                           type=int)
 
-
 cmdUtils.get_args()
 received_all_event = threading.Event()
 
@@ -100,7 +108,9 @@ def on_message_received(topic, payload, dup, qos, retain, **kwargs):
     y_start = (trucks_dicts[data['id']]['num'] - 1) * 160
     y_end = trucks_dicts[data['id']]['num'] * 160
 
-    canvas.create_rectangle(600, y_start, 980, y_end, outline="black", fill='yellow', width=2)
+    color = truck_colors[trucks_dicts[data["id"]]["num"]]
+
+    canvas.create_rectangle(600, y_start, 980, y_end, outline="black", fill=f"{color}", width=2)
 
     text = f"""
         Truck ID: {data['id']}
@@ -113,7 +123,7 @@ def on_message_received(topic, payload, dup, qos, retain, **kwargs):
         "following-x": {data['following-x']}, 
         "following-y": {data['following-y']}, 
     """
-    canvas.create_text(750, y_start + 80, text=text, fill='black', tags="main_text")
+    canvas.create_text(750, y_start + 80, text=text, fill='white', tags="main_text")
 
     canvas.coords(f"truck0{trucks_dicts[data['id']]['num']}", data["x"], data["y"])
 
