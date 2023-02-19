@@ -2,10 +2,8 @@ import command_line_utils
 import json
 import sys
 import threading
-import time
 from awscrt import mqtt
 from tkinter import *
-
 
 WIDTH = 650
 HEIGHT = 650
@@ -19,7 +17,36 @@ image = PhotoImage(file="images/truck01.png")
 resized_image = image.subsample(4, 4)  # larger number is smaller
 canvas.create_image(100, 100, anchor=CENTER, image=resized_image, tags="truck01")
 
+canvas.coords("truck01", -200, -200)
+
+image2 = PhotoImage(file="images/truck02.png")
+resized_image2 = image2.subsample(4, 4)  # larger number is smaller
+canvas.create_image(100, 100, anchor=CENTER, image=resized_image2, tags="truck02")
+canvas.coords("truck02", -200, -200)
+
+image3 = PhotoImage(file="images/truck03.png")
+resized_image3 = image3.subsample(4, 4)  # larger number is smaller
+canvas.create_image(100, 100, anchor=CENTER, image=resized_image3, tags="truck03")
+canvas.coords("truck03", -200, -200)
+
+image4 = PhotoImage(file="images/truck04.png")
+resized_image4 = image4.subsample(4, 4)  # larger number is smaller
+canvas.create_image(100, 100, anchor=CENTER, image=resized_image4, tags="truck04")
+canvas.coords("truck04", -200, -200)
+
+image5 = PhotoImage(file="images/truck05.png")
+resized_image5 = image5.subsample(4, 4)  # larger number is smaller
+canvas.create_image(100, 100, anchor=CENTER, image=resized_image5, tags="truck05")
+canvas.coords("truck05", -200, -200)
+
+image6 = PhotoImage(file="images/truck06.png")
+resized_image6 = image6.subsample(4, 4)  # larger number is smaller
+canvas.create_image(100, 100, anchor=CENTER, image=resized_image6, tags="truck06")
+canvas.coords("truck06", -200, -200)
+
 canvas.pack()
+
+trucks_dicts = {}
 
 received_count = 0
 cmdUtils = command_line_utils.CommandLineUtils("PubSub - Send and recieve messages through an MQTT connection.")
@@ -74,9 +101,11 @@ def on_resubscribe_complete(resubscribe_future):
 
 # Callback when the subscribed topic receives a message
 def on_message_received(topic, payload, dup, qos, retain, **kwargs):
-    # print("Received message from topic '{}': {}".format(topic, payload))
     data = json.loads(payload.decode('utf-8'))
-    canvas.coords("truck01", data['x'], data['y'])
+    if not trucks_dicts.get(data['id']):
+        trucks_dicts[data['id']] = {'num': len(trucks_dicts)}
+
+    canvas.coords(f"truck0{trucks_dicts[data['id']]['num']}", data["x"], data["y"])
 
 
 if __name__ == '__main__':
@@ -96,14 +125,3 @@ if __name__ == '__main__':
     print("Subscribed with {}".format(str(subscribe_result['qos'])))
 
     win.mainloop()
-
-    # while True:
-    #     time.sleep(1)
-
-    # received_all_event.wait()
-    # print("{} message(s) received.".format(received_count))
-
-    # print("Disconnecting...")
-    # disconnect_future = mqtt_connection.disconnect()
-    # disconnect_future.result()
-    # print("Disconnected!")
