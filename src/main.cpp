@@ -119,6 +119,7 @@ int main(int argc, char *argv[]) {
                 string message = threadSafeQueue.front();
                 threadSafeQueue.pop();
 
+                // publish this vehicle model to AWS - triggered from VehicleControl
                 if (strcmp(message.c_str(), "update") == 0) {
                     // convert the vehicle model json to a string
                     StringBuffer buffer;
@@ -130,6 +131,8 @@ int main(int argc, char *argv[]) {
                     communication.publish(buffer.GetString());
                     continue;
                 }
+
+                // process AWS messages from other vehicles
 
                 // parse string->json
                 Document doc;
