@@ -72,15 +72,21 @@ int main(int argc, char *argv[]) {
     Value speed(0.0);
     Value direction(0);
     Value joined(0);
+    Value followingX(0);
+    Value followingY(0);
+    Value followingDirection(0);
     vehicleModel.AddMember("id", id, vehicleModel.GetAllocator());
     vehicleModel.AddMember("x", x, vehicleModel.GetAllocator());
     vehicleModel.AddMember("y", y, vehicleModel.GetAllocator());
-    vehicleModel.AddMember("isBraking", isBraking, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("is-braking", isBraking, vehicleModel.GetAllocator());
     vehicleModel.AddMember("speed", speed, vehicleModel.GetAllocator());
     vehicleModel.AddMember("direction", direction, vehicleModel.GetAllocator());
     vehicleModel.AddMember("joined", joined, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("following-x", followingX, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("following-y", followingY, vehicleModel.GetAllocator());
+    vehicleModel.AddMember("following-direction", followingDirection, vehicleModel.GetAllocator());
 
-    cout << endl << "Starting.. (" << vehicleLabel << ")" << endl;
+    cout << endl << "Starting with ID: " << vehicleLabel << endl;
     cout << "Processors " << omp_get_num_procs() << endl << endl;
 
     omp_set_nested(1);
@@ -107,6 +113,7 @@ int main(int argc, char *argv[]) {
 
             // open the connection to AWS IoT (MQTT)
             // event based messages will be returned in the treadSafeQueued
+            this_thread::sleep_for(chrono::seconds(1));
             Communication communication = Communication(
                     threadSafeQueue,
                     connection,
@@ -115,7 +122,7 @@ int main(int argc, char *argv[]) {
             );
 
             while (true) {
-                // block until AWS message received
+                // block until AWS/Update message received
                 string message = threadSafeQueue.front();
                 threadSafeQueue.pop();
 
@@ -136,7 +143,14 @@ int main(int argc, char *argv[]) {
 
                 // parse string->json
                 Document doc;
-                doc.Parse(message.c_str());
+                doc.Parse(message.c_str());  // other vehicles message
+
+                // if following the truck in this message, note its position and direction
+                if (following == doc["id"].GetString()) {
+                    vehicleModel["following-x"].SetDouble(doc["x"].GetDouble());
+                    vehicleModel["following-y"].SetDouble(doc["y"].GetDouble());
+                    vehicleModel["following-direction"].SetInt(doc["direction"].GetInt());
+                }
 
                 // add received timestamp
                 // TODO: Using server time here is preferred as it will cause critical issues if a machines time is wrong
@@ -144,7 +158,7 @@ int main(int argc, char *argv[]) {
                         chrono::system_clock::now().time_since_epoch()).count();
                 doc.AddMember("received", timestamp, doc.GetAllocator());
 
-                // existing vehicle, update the record
+                // existing - update the record
                 bool updated = false;
                 for (auto &vehicle: vehicles) {
                     if (strcmp(vehicle["id"].GetString(), doc["id"].GetString()) == 0) {
@@ -153,7 +167,7 @@ int main(int argc, char *argv[]) {
                         break;
                     }
                 }
-                // new vehicle, add it
+                // new - add it
                 if (!updated) {
                     cout << "+ " << doc["id"].GetString() << endl;
                     vehicles.push_back(std::move(doc));
@@ -224,6 +238,9 @@ int main(int argc, char *argv[]) {
                             vehicleModel["joined"].SetUint(0);
                             vehicleModel["x"].SetDouble(250);
                             vehicleModel["y"].SetDouble(350);
+                            vehicleModel["following-x"].SetDouble(0);
+                            vehicleModel["following-y"].SetDouble(0);
+                            vehicleModel["following-direction"].SetInt(0);
                             following = "";
                             cout << "Platoon left" << endl;
                         }
@@ -240,7 +257,7 @@ int main(int argc, char *argv[]) {
     "id": string,
     "x": double,
     "y": double,
-    "isBraking": bool,
+    "is-braking": bool,
     "speed": double,
     "direction": int,
     "joined": time_t,
@@ -251,7 +268,7 @@ int main(int argc, char *argv[]) {
     "id": "123",
     "x": 10.5,
     "y": 20.0,
-    "isBraking": false,
+    "is-braking": false,
     "speed": 50.0,
     "direction": 90,
     "joined": 1644723600,

@@ -4,7 +4,7 @@
  * boundary will be 600x600
  * consisting of a 500x500 box with 50 margin
  *
- * it should take about 4 seconds to traverse the area and 1s to change direction at an edge
+ * it should take about 4 seconds to traverse the area and 1s to change direction at an edge (250ms frame updates)
  * 4s * 250ms updates = 16 frames = ~30 pixels/frame
  * 1s * 250ms cornering = 4 frames = 0.5 * SPEED_LIMIT for each frame outside the boundary
  */
@@ -24,20 +24,27 @@ VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSa
     while (true) {
         #pragma omp critical
         {
+            // get the position
             position = make_pair(vehicleModel["x"].GetDouble(), vehicleModel["y"].GetDouble());
+
+            // update the position and direction
             direction = changeDirectionAtBoundary(position, direction);
             position = move(position, direction);
+
+            // write to the vehicleModel
             vehicleModel["x"].SetDouble(position.first);
             vehicleModel["y"].SetDouble(position.second);
             double speed = abs(direction.first) + abs(direction.second);
             vehicleModel["speed"].SetDouble(speed);
-            vehicleModel["isBraking"].SetBool(speed != SPEED_LIMIT * 2);
+            vehicleModel["is-braking"].SetBool(speed != SPEED_LIMIT * 2);
 
+            // add direction
             double angle = atan2(direction.second, direction.first) * 180 / M_PI;
             if (angle < 0) angle += 360;
             vehicleModel["direction"].SetInt(static_cast<int>(angle));
         }
 
+        // tell the AWS section to publish the vehicleModel
         threadSafeQueue.push("update");
 
         this_thread::sleep_for(chrono::milliseconds(INTERVAL_TIME_MS));
