@@ -49,7 +49,7 @@ Communication::Communication(ThreadSafeQueue threadSafeQueue, std::shared_ptr<Mq
     #pragma omp critical
     fprintf(stdout, "Connecting...\n");
 
-    if (!connection->Connect(clientId.c_str(), false, 1000)) {
+    if (!connection->Connect(clientId.c_str(), true, 1000)) {  // true - clean_session
         fprintf(stderr, "MQTT Connection failed with error %s\n", ErrorDebugString(connection->LastError()));
         exit(-1);
     }
