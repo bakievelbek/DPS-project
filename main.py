@@ -10,12 +10,12 @@ TEXT_CONTAINER_WIDTH = 340
 TEXT_CONTAINER_HEIGHT = HEIGHT / 5
 
 truck_colours = [
-    'black',
-    'red',
-    'blue',
-    'green',
-    'magenta',
-    'yellow'
+    '#6a4c93',
+    '#1982c4',
+    '#8ac926',
+    '#ffca3a',
+    '#ff595e',
+    '#000000'
 ]
 
 model = {}
@@ -27,34 +27,28 @@ win.geometry("%sx%s" % (WIDTH, HEIGHT))
 canvas = Canvas(win, width=WIDTH, height=HEIGHT, background="white")
 
 image = PhotoImage(file="images/truck01.png")
-resized_image = image.subsample(4, 4)  # larger number is smaller
-canvas.create_image(100, 100, anchor=CENTER, image=resized_image, tags="truck01")
+canvas.create_image(100, 100, anchor=CENTER, image=image, tags="truck01")
 
 canvas.coords("truck01", -200, -200)
 
 image2 = PhotoImage(file="images/truck02.png")
-resized_image2 = image2.subsample(4, 4)  # larger number is smaller
-canvas.create_image(100, 100, anchor=CENTER, image=resized_image2, tags="truck02")
+canvas.create_image(100, 100, anchor=CENTER, image=image2, tags="truck02")
 canvas.coords("truck02", -200, -200)
 
 image3 = PhotoImage(file="images/truck03.png")
-resized_image3 = image3.subsample(4, 4)  # larger number is smaller
-canvas.create_image(100, 100, anchor=CENTER, image=resized_image3, tags="truck03")
+canvas.create_image(100, 100, anchor=CENTER, image=image3, tags="truck03")
 canvas.coords("truck03", -200, -200)
 
 image4 = PhotoImage(file="images/truck04.png")
-resized_image4 = image4.subsample(4, 4)  # larger number is smaller
-canvas.create_image(100, 100, anchor=CENTER, image=resized_image4, tags="truck04")
+canvas.create_image(100, 100, anchor=CENTER, image=image4, tags="truck04")
 canvas.coords("truck04", -200, -200)
 
 image5 = PhotoImage(file="images/truck05.png")
-resized_image5 = image5.subsample(4, 4)  # larger number is smaller
-canvas.create_image(100, 100, anchor=CENTER, image=resized_image5, tags="truck05")
+canvas.create_image(100, 100, anchor=CENTER, image=image5, tags="truck05")
 canvas.coords("truck05", -200, -200)
 
 image6 = PhotoImage(file="images/truck06.png")
-resized_image6 = image6.subsample(4, 4)  # larger number is smaller
-canvas.create_image(100, 100, anchor=CENTER, image=resized_image6, tags="truck06")
+canvas.create_image(100, 100, anchor=CENTER, image=image6, tags="truck06")
 canvas.coords("truck06", -200, -200)
 
 canvas.pack()
