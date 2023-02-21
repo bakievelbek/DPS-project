@@ -1,21 +1,25 @@
 import command_line_utils
 import json
 import sys
-import threading
 from awscrt import mqtt
 from tkinter import *
 
-WIDTH = 980
-HEIGHT = 800
+WIDTH = 1200
+HEIGHT = 700
+TEXT_CONTAINER_WIDTH = 340
+TEXT_CONTAINER_HEIGHT = HEIGHT / 5
 
-truck_colors = {
-    1: 'black',
-    2: 'red',
-    3: 'blue',
-    4: 'green',
-    5: 'magenta',
-    6: 'yellow'
-}
+truck_colours = [
+    'black',
+    'red',
+    'blue',
+    'green',
+    'magenta',
+    'yellow'
+]
+
+model = {}
+truck_color = {}
 
 win = Tk()
 win.title("Truck Canvas")
@@ -55,8 +59,6 @@ canvas.coords("truck06", -200, -200)
 
 canvas.pack()
 
-trucks_dicts = {}
-
 received_count = 0
 cmdUtils = command_line_utils.CommandLineUtils("PubSub - Send and recieve messages through an MQTT connection.")
 cmdUtils.add_common_mqtt_commands()
@@ -72,7 +74,6 @@ cmdUtils.register_command("port", "<int>", "Connection port. AWS IoT supports 44
                           type=int)
 
 cmdUtils.get_args()
-received_all_event = threading.Event()
 
 
 # Callback when connection is accidentally lost.
@@ -102,30 +103,43 @@ def on_resubscribe_complete(resubscribe_future):
 # Callback when the subscribed topic receives a message
 def on_message_received(topic, payload, dup, qos, retain, **kwargs):
     data = json.loads(payload.decode('utf-8'))
-    if not trucks_dicts.get(data['id']):
-        trucks_dicts[data['id']] = {'num': len(trucks_dicts) % 6 + 1}
+    model[data['id']] = data
+    if data['id'] not in truck_color:
+        truck_color[data['id']] = len(truck_color) % 6 + 1
 
-    y_start = (trucks_dicts[data['id']]['num'] - 1) * 160
-    y_end = trucks_dicts[data['id']]['num'] * 160
 
-    color = truck_colors[trucks_dicts[data["id"]]["num"]]
+def update_screen():
+    # delete the old text elements
+    for element in canvas.find_withtag("truck_text"):
+        canvas.delete(element)
 
-    canvas.create_rectangle(600, y_start, 980, y_end, outline="black", fill=f"{color}", width=2)
+    for truck_id in dict(model):  # make a copy to prevent mutex issues
+        truck = model[truck_id]
+        colour_id = truck_color[truck_id]
 
-    text = f"""
-        Truck ID: {data['id']}
-        "x": {data["x"]},
-        "y": {data["y"]},
-        "isBraking": {data["is-braking"]},
-        "speed": {data['speed']},
-        "direction": {data['direction']},
-        "joined": {'Yes' if data["joined"] else 'No'},
-        "following-x": {data['following-x']}, 
-        "following-y": {data['following-y']}, 
-    """
-    canvas.create_text(750, y_start + 80, text=text, fill='white', tags="main_text")
+        # move truck
+        canvas.coords(f"truck0{colour_id}", truck["x"], truck["y"])
 
-    canvas.coords(f"truck0{trucks_dicts[data['id']]['num']}", data["x"], data["y"])
+        text = f"""
+            Truck ID: {truck['id']}
+                x: {truck["x"]}
+                y: {truck["y"]}
+                is-braking: {truck["is-braking"]}
+                speed: {truck['speed']}
+                direction: {truck['direction']}
+                joined: {truck["joined"] != 0}
+        """
+
+        canvas.create_text(
+            WIDTH - TEXT_CONTAINER_WIDTH,
+            (colour_id - 1) * TEXT_CONTAINER_HEIGHT,
+            text=text,
+            fill='white',
+            tags='truck_text',
+            anchor='nw'
+        )
+
+    canvas.after(100, update_screen)
 
 
 if __name__ == '__main__':
@@ -143,5 +157,18 @@ if __name__ == '__main__':
         callback=on_message_received)
     subscribe_result = subscribe_future.result()
     print("Subscribed with {}".format(str(subscribe_result['qos'])))
+
+    for i in range(6):
+        canvas.create_rectangle(
+            WIDTH - TEXT_CONTAINER_WIDTH,
+            i * TEXT_CONTAINER_HEIGHT,
+            WIDTH,
+            (i + 1) * TEXT_CONTAINER_HEIGHT,
+            outline='black',
+            fill=truck_colours[i],
+            width=2
+        )
+
+    canvas.after(1000, update_screen)
 
     win.mainloop()
