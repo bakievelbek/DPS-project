@@ -10,9 +10,11 @@
  */
 
 double SPEED_LIMIT = 20;  // pixels/frame
-int BOUNDARY_TL = 100;
-int BOUNDARY_BR = 500;
-int INTERVAL_TIME_MS = 250;  // frame interval (update time in ms)
+int BOUNDARY_T = 80;
+int BOUNDARY_R = 725;
+int BOUNDARY_B = 612;
+int BOUNDARY_L = 140;
+int INTERVAL_TIME_MS = 100;  // frame interval (update time in ms)
 
 VehicleControl::VehicleControl(Document &vehicleModel, ThreadSafeQueue &threadSafeQueue) {
     double SPEED_X = SPEED_LIMIT * (rand() % 2 == 0 ? -1 : 1);
@@ -89,10 +91,10 @@ pair<double, double> VehicleControl::changeDirectionAtBoundary(pair<double, doub
     double dy = direction.second;
 
     // should take 4 frames to change direction
-    if (x < BOUNDARY_TL) dx += SPEED_LIMIT * .5;
-    if (y < BOUNDARY_TL) dy += SPEED_LIMIT * .5;
-    if (x > BOUNDARY_BR) dx -= SPEED_LIMIT * .5;
-    if (y > BOUNDARY_BR) dy -= SPEED_LIMIT * .5;
+    if (x < BOUNDARY_L) dx += SPEED_LIMIT * .5;
+    if (y < BOUNDARY_T) dy += SPEED_LIMIT * .5;
+    if (x > BOUNDARY_R) dx -= SPEED_LIMIT * .5;
+    if (y > BOUNDARY_B) dy -= SPEED_LIMIT * .5;
 
     // enforce speed limits
     if (dx < -SPEED_LIMIT) dx = -SPEED_LIMIT;

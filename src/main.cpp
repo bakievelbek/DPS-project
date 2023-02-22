@@ -66,8 +66,8 @@ int main(int argc, char *argv[]) {
     Document vehicleModel;
     vehicleModel.SetObject();
     Value id(vehicleLabel.c_str(), vehicleModel.GetAllocator());
-    Value x(rand() % 301 + 150);
-    Value y(rand() % 301 + 150);
+    Value x(rand() % 300 + 200);
+    Value y(rand() % 300 + 200);
     Value isBraking(false);
     Value speed(0.0);
     Value direction(0);
